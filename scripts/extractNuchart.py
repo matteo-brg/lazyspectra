@@ -16,7 +16,6 @@ def find_cumulative_fission_yield(parent_list = None):
     metastable_nuclides_names = np.array([])  
     non_metastable_nuclides_names = np.array([])    
 
-    print(parent_list)
     for parent in parent_list:
         nuchart = wrappers.CmdNuChart()
         nuchart.get_fission_yields(kind="cumulative",parent=parent)
@@ -27,7 +26,6 @@ def find_cumulative_fission_yield(parent_list = None):
         
         #========= find the cumulative fission yield >0
         ii = nuchart.get_index_non_empty(variable_names[0])
-        print(parent, len(ii))
         cfy= nuchart.get_array(variable_names[0])[ii].astype(float)
         er_cfy = nuchart.get_array(variable_names[1])[ii].astype(float)
 
