@@ -10,33 +10,33 @@ Tools for bayesian data analysis
    ```
    or Clone with HTTPS using the web URL
    ```
-   $ git clone https://github.com/
+   $ git clone https://github.com/matteo-brg/lazyspectra.git
    ```
 
 2. Install virtualenv using `python >= 3.8`
    ```
    $ sudo pip install virtualenv
    ```
-   Create the baynes virtual environment based on python3.X (X>=8)
+   Create the lazyspectra virtual environment based on python3.X (X>=8)
    ```
-   $ virtualenv -p `which python3.X` ~/baynesenv
+   $ virtualenv -p `which python3.X` ~/lazyenv
    ```
    Run the following command to activate the virtual environment
    ```
-   $ source baynesenv/bin/activate
+   $ source lazyenv/bin/activate
    ```
    (optional) Check the version of python being used in the virtual environment
    ```
-   (baynesenv) $ python -V
+   (lazyenv) $ python -V
    ```
 
 3. Install the required Python packages and dependencies, which include CmdStanPy. With the virtual environment active, move into the `baynes` folder
    ```
-   (baynesenv) $ cd baynes
+   (lazyenv) $ cd lazyspectra
    ```
    and type
    ```
-   (baynesenv) $ pip install .
+   (lazyenv) $ pip install .
    ```
 
 
@@ -46,8 +46,8 @@ Tools for bayesian data analysis
     │
     ├── src                            # Project source code
     ├── scripts                        # Directory for scripts and executables
-    ├── test                           # Directory used to collect test code
-    ├── test                           # Directory for jupyter notebook and guides
+    ├── config                         # Directory for config files
+    ├── notebook                       # Directory for jupyter notebook and guides
     ├── requirements.txt               # Requirements file specifing the lists of packages to install
     ├── setup.py                       #
     ├── .gitignore                     # Specifies intentionally untracked files to ignore
