@@ -263,6 +263,7 @@ def main():
     dic_header["date"] = date.today().strftime("%m/%d/%y")
     if args.note != "":
         dic_header["note"] = args.note
+    dic_header["threshold_energy"] = E_thr
     writer.set_general_info(dic_header)
     
     for key, value in dictionary_final.items():

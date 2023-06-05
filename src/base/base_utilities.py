@@ -107,4 +107,21 @@ def merge_dictionaries(dic1,dic2,keys=None):
     for k in keys:
         dic3[k] = {**dic3[k] , **dic2[k]}
     return dic3
+    
+def log(message='',level=1):
+    out = '|'+level*2*'-'
+    if level==-1:
+        out = '|'+20*'-'
+    else:
+        out +=' '+ message
+    if level == 0:
+        out = message
+    print(out)
+    return
 
+
+def findOccurrences(s, ch):
+    '''
+    Find all the occurences of a character (ch) in a string (s)
+    '''
+    return [i for i, letter in enumerate(s) if letter == ch]

@@ -9,14 +9,17 @@ class LazyWriter:
     
     '''
     
-    def __init__(self, output_path=None,name=None):
+    def __init__(self, output_path=None,name=None,fname=None):
         
         '''
         some info here
         
         '''
-        output_path = base_utilities.fix_path(output_path)
-        self._file = output_path+name  +'.lazy'
+        if output_path is not None:
+            output_path = base_utilities.fix_path(output_path)
+            self._file = output_path+name  +'.lazy'
+        if fname is not None:
+            self._file = fname
 
         return
         
@@ -92,7 +95,9 @@ class LazyWriter:
         try:
             group.create_dataset(variable_name, data=value)        
         except (ValueError):     #if exist, overwrite it
-            group[variable_name][...] = value 
+            del group[variable_name]
+            group.create_dataset(variable_name, data=value) 
+            #group[variable_name][...] = value 
         return
  
  
@@ -161,6 +166,36 @@ class LazyReader:
             if temp.dtype == "O":
                 temp = temp.astype(str)
         return temp
+        
+    def get_data(self,name=None, group_path="nuclides",sub_group = "data",E_min = 0, E_max = 12000,E_step = None):
+        if E_step is None:
+            E_step = self.get_info()["E_step"]
+            
+        energies = np.arange(0,E_max,step=E_step) #energy in the dataset
+        pos_min, pos_max = np.where((energies>=E_min)&(energies<=E_max))[0][[0,-1]]
+        data_lenght = int(pos_max-pos_min)
+        with h5py.File(self._file,'r') as f:
+            temp = []
+            pos_ok = []
+            pos_notok = []
+            i = 0
+            for el in f[group_path].keys():
+                try:
+                    value = np.array(f[group_path][el][sub_group][name])
+                    pos_ok.append(i)
+                except:
+                    pos_notok.append(i)
+                    i+=1
+                    continue
+                value = value[pos_min:pos_max+1]
+                value = np.append(value,np.zeros(data_lenght-len(value)+1))  #FIXME, dati con zero prima?
+                temp.append(value)
+                i+=1
+        energies = energies[pos_min:pos_max+1]
+        data = np.array(temp)
+        pos_ok = np.array(pos_ok)
+        pos_notok = np.array(pos_notok)
+        return data,energies,pos_ok,pos_notok
     
     def get_nuclide(self,name=None,loc=None,group_path="nuclides"):
         subgroup1_name = "info"
@@ -178,5 +213,4 @@ class LazyReader:
             dic1['lazy_name'] = nuclide_name
         return dic1
         
-    def get_data(self):
-        pass
+
