@@ -1,5 +1,5 @@
-# baynes
-Tools for bayesian data analysis
+# Lazyspectra
+Insert description here
 ![versions](https://img.shields.io/pypi/pyversions/pybadges.svg)
 
 ### Installation
