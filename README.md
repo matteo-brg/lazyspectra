@@ -30,7 +30,7 @@ Insert description here
    (lazyenv) $ python -V
    ```
 
-3. Install the required Python packages and dependencies, which include CmdStanPy. With the virtual environment active, move into the `baynes` folder
+3. Install the required Python packages, dependencies and BetaShape. With the virtual environment active, move into the `lazyspectra` folder
    ```
    (lazyenv) $ cd lazyspectra
    ```
@@ -38,6 +38,7 @@ Insert description here
    ```
    (lazyenv) $ pip install .
    ```
+   Install Betashape with the following instruction http://www.lnhb.fr/rd-activities/spectrum-processing-software/ (V2.2 tested).
 
 
 ### Project top-level directory layout
