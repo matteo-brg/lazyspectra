@@ -7,4 +7,5 @@ jupyterlab-widgets==3.0.5
 matplotlib==3.3.4
 notebook==6.4.10
 numpy==1.24.2
+pandas==2.0.1
 scipy==1.5.4
