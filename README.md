@@ -44,10 +44,17 @@ Insert description here
    ```
    chmod +x file_name
    ```
-   make sure that the betashape directory is defined in the PATH. If the betashape directory has, let's say, betashape_path, write the following lines in your bashrc file
+   I highly suggest you to create a virtual link to the betashape directory. If the betashape directory has, let's say, betashape_path, create a virtual link in the chosen path (path_target)
+   ```
+   cd path_target
+   ln -s betashape_path path_target/betashape_rightversion
+   ```
+   If you download a new betashape version, just change the previous link.
+
+   Make sure that the betashape directory is defined in the PATH. Write the following lines in your bashrc file
    ```
    #ADDED FOR BETASHAPE
-   export PATH="$PATH:betashape_path"
+   export PATH="$PATH:path_target/betashape_rightversion"
    ```
    reboot your terminal, and you should be good to go! 
 
