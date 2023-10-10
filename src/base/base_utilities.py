@@ -38,12 +38,12 @@ class Config2Dict(object):
             # Remove all the comments and split the string in rows
             nocomments = [s.split('#')[0] for s in text.split('\n')]            
             
-            # Find all the rows containing the character "=" 
-            # and remove alle the whitespace
-            matching = ["".join(s.split()) for s in nocomments if "=" in s]
-
-            # Convert list in a map (list of list)
-            entries=dict(list(map(methodcaller("split", "="), matching)))
+            entries = {}
+            for el in nocomments:
+                pos = el.find("=")
+                key = el[:pos].strip()
+                value = el[pos+1:].strip()
+                entries[key] = value
 
             self.__pars.clear()
 
