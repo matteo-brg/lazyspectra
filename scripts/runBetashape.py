@@ -18,12 +18,12 @@ def lazy_to_ensdf(list_of_names=None,dtype=".ensdf"):
         
     #make all uppercase and add the correct dtype
     for i in range(len(list_of_names)):
-        list_of_names[i] = list_of_names[i].upper() + ".ensdf"
+        list_of_names[i] = list_of_names[i].upper() + dtype
 
     list_of_names = np.unique(np.array(list_of_names))
     return list_of_names    
     
-def get_ensdf_file(lname=None,ensdf_path=None):
+def get_ensdf_file(lname=None,ensdf_path=None,dtype = ".ensdf"):
     if lname is None:
         lista = np.array(listdir(ensdf_path))
         temp = []
@@ -80,7 +80,7 @@ def main():
     listina =[f.name for f in os.scandir(betashape_out_dir) if f.is_dir() ]
     if len(listina) != 0:
         for i in range(len(listina)):
-        listina[i] = listina[i].upper() + ".ensdf"    
+            listina[i] = listina[i].upper() + ".ensdf"    
         
     bu.log("Running betashape...",level=1)
     imax = len(fname_to_process)
