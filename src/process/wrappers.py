@@ -137,7 +137,7 @@ class CmdBetaShape(object):
             header = ""
             header += f.readline()
             compact = header.replace(" ","")
-            while compact[0] != "E":
+            while compact[:6] != "E(keV)":
                 text = f.readline()
                 compact = text.replace(" ","")
                 header+=text
