@@ -30,7 +30,7 @@ Insert description here
    (lazyenv) $ python -V
    ```
 
-3. Install the required Python packages, dependencies and BetaShape. With the virtual environment active, move into the `lazyspectra` folder
+3. Install the required Python packages and dependencies. With the virtual environment active, move into the `lazyspectra` folder
    ```
    (lazyenv) $ cd lazyspectra
    ```
@@ -38,8 +38,18 @@ Insert description here
    ```
    (lazyenv) $ pip install .
    ```
-   Install Betashape with the following instruction http://www.lnhb.fr/rd-activities/spectrum-processing-software/ (V2.2 tested).
+4. Install Betashape following the instruction http://www.lnhb.fr/rd-activities/spectrum-processing-software/ (V2.3 tested).
 
+   I suggest you to follow these steps: download the betashape folder, make every file inside the main betashape folder executable 
+   ```
+   chmod +x file_name
+   ```
+   make sure that the betashape directory is defined in the PATH. If the betashape directory has, let's say, betashape_path, write the following lines in your bashrc file
+   ```
+   #ADDED FOR BETASHAPE
+   export PATH="$PATH:betashape_path"
+   ```
+   reboot your terminal, and you should be good to go! 
 
 ### Project top-level directory layout
 
