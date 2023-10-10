@@ -69,9 +69,7 @@ def main():
     cmdBeta.set_save_path(betashape_out_dir)
     
     bu.log("Setting the required options...",level=1)
-    cmd_for_betashape = "myEstep="+str(config_dic["energy_step"])
-    if bool(config_dic["antineutrino_spectra"]) is True:
-        cmd_for_betashape += " nu=1"
+    cmd_for_betashape = str(config_dic["betashape_opt"])
 
     f_not_processed = []
     f_processed = []
