@@ -99,21 +99,25 @@ class CmdBetaShape(object):
         self._save_path = path
         return
         
-    def run_betashape(self,fpath=None,fname = None, options = "",verbose=True):
-        fpath = base_utilities.fix_path(fpath)
-        original_files = [f for f in listdir(fpath)] # name of the files in the folder before betashape
         
-        cmd = "betashape "+fpath+fname + " " + options
+    def run_betashape(self,fpath=None,fname = None, options = "",verbose=True):
+        bpath = base_utilities.fix_path(self._betashape_path)
+        original_files = [f for f in listdir(bpath)] # name of the files in the betashape folder BEFORE launching betashape
+        
+        file_to_process = base_utilities.fix_path(fpath) + fname  #copy the file to process inside the betashape folder
+        subprocess.call(["cp",file_to_process, bpath])
+        
+        cmd = "betashape "+fname + " " + options  #launch betashape
         message =subprocess.Popen(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=True,cwd=self._betashape_path).communicate()
         if verbose is True:
             print(message[0].decode('ascii'))
             
-        full_files = [f for f in listdir(fpath)] # name of the files in the folder after betashape
+        full_files = [f for f in listdir(bpath)] # name of the files in the betashape folder AFTER launching betashape
         ii =np.uint32(np.where(np.in1d(np.array(full_files),np.array(original_files),invert = True))[0])
         new_files = np.array(full_files)[ii]     # file created by betashape
         
         for filen in new_files:
-            subprocess.call(["mv",  fpath+filen, self._save_path])
+            subprocess.call(["mv",  bpath+filen, self._save_path])
         self._message = message[0].decode('ascii')
         return  
         
