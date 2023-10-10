@@ -39,7 +39,7 @@ def get_betashape_output(fname=None,dtype="normal"):
     col_save = [col_save, col_save+1]
     data_save = data[:-1,col_save]
     Emax = data[-1,0]
-    Estep = data[4,0]-data[3,0]
+    Estep = data[2,0]-data[1,0]
     return data_save, Emax, np.array(labels)[col_save],Estep
 
 
@@ -209,8 +209,12 @@ def main():
             for i in range(len(bugged_dir_list)):
                 bu.log("Fixing "+bugged_dir_list[i], level=3)
                 nuname = convert_nuname_betashape_lazy( bugged_dir_list[i][bu.findOccurrences(bugged_dir_list[i],"/")[-1]+1:] )
-                spectrum_total, dummy_error = calculate_full_spectrum(lname,nuname,Estep)
-                
+                try:
+                    spectrum_total, dummy_error = calculate_full_spectrum(lname,nuname,Estep)
+                except Exception as error:
+                    bu.log("Some error occurred! -> ", level=4)
+                    print(error)
+                    continue
                 writer.write_nuclide_data(nuclide_name = nuname,dtype="data",vname="dN_dE_tot",vvalue=spectrum_total)
                 writer.write_nuclide_data(nuclide_name = nuname,dtype="data",vname="unc_dN_dE",vvalue=dummy_error)
                 writer.write_nuclide_data(nuclide_name = nuname,dtype="info",vname="Emax",vvalue=np.arange(0,len(spectrum_total),Estep)[-1])
