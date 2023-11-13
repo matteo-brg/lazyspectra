@@ -116,9 +116,17 @@ class CmdBetaShape(object):
         ii =np.uint32(np.where(np.in1d(np.array(full_files),np.array(original_files),invert = True))[0])
         new_files = np.array(full_files)[ii]     # file created by betashape
         
+        file_dir = None
         for filen in new_files:
+            if os.path.isdir(bpath+filen) is True:
+                file_dir = filen
             subprocess.call(["mv",  bpath+filen, self._save_path])
         self._message = message[0].decode('ascii')
+        
+        new_files = np.delete(new_files,new_files==file_dir)  
+        if file_dir is not None:    #copy ALL the betashape output inside the nuclide folder (file_dir).
+            for filen in new_files:
+                subprocess.call(["mv",  CmdBEtashape._save_path+"/"+filen, CmdBEtashape._save_path+"/"+file_dir])
         return  
         
     def get_result_state(self,thr=800):
