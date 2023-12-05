@@ -113,6 +113,7 @@ def main():
     parser.add_argument("-f", "--file"      , dest="fname"   , type=str , help=".lazy file"      , required = True)
     parser.add_argument("-p", "--path"      , dest="dir_beta"   , type=str , help="path to the betashape directory"      , required = True)
     parser.add_argument("-t", "--type"    , dest="type"    , type=str , help="data to save (full, partial)"  , required = True)  
+    parser.add_argument("-l", "--label"    , dest="label"    , type=str , help="tag attached to each data"  , required = False,default = "ensdf")  
 
     args = parser.parse_args()    
     
@@ -138,6 +139,7 @@ def main():
         
 
     writer = lazy_handler.LazyWriter(fname = lname)
+    reader = lazy_handler.LazyReader(lname)
 
     bu.log("Start merging datas ("+ betashape_out_dir+"->"+lname+"...",level=0) 
     dir_to_process = [ f.path for f in os.scandir(betashape_out_dir) if f.is_dir() ]
@@ -167,8 +169,8 @@ def main():
                 pos = np.where(labels == "dNtot/dEnu")[0]
                 dic["dN_dE_tot"] = (data_mat[:,pos].T).flatten()
                 dic["unc_dN_dE"] = (data_mat[:,pos+1].T).flatten()
-                writer.write_nuclide_data(nuclide_name = lazy_nuclides_names[i],dtype="info",vname="Emax",vvalue=E_max)
-
+            #writer.write_nuclide_data(nuclide_name = lazy_nuclides_names[i],dtype="info",vname="Emax",vvalue=E_max)
+                
         
 
             if dtype == "nupartial":
@@ -191,8 +193,20 @@ def main():
                 dic["transition_intensity"] = np.array(trans_intensity)
                 dic["transition_unc_intensity"] = np.array(er_trans_intensity)
                 dic["transition_Emax"] = np.array(trans_energy)
-        bu.log("["+str(i+1)+"/"+str(imax)+"] Processing "+ dir_to_process[i]+"...",level=1)
 
+        bu.log("["+str(i+1)+"/"+str(imax)+"] Processing "+ dir_to_process[i]+"...",level=1)
+        
+        try: #FIXME #if the nuclide data is already present, skip it
+            dummy = reader.get_nuclide(name=lazy_nuclides_names[i])["transition_dN_dE"]
+            already_exist = True
+        except:
+            already_exist = False
+        if already_exist == True:
+            bu.log("Already has data, I will skip it!",level=2)
+            continue
+            
+        writer.write_nuclide_data(nuclide_name = lazy_nuclides_names[i],dtype="info",vname="Emax",vvalue=E_max)
+        writer.write_nuclide_data(nuclide_name = lazy_nuclides_names[i],dtype="info",vname="label", vvalue = args.label)
         writer.write_nuclide_data(nuclide_name = lazy_nuclides_names[i],dtype="data",dictionary=dic)
 
 
@@ -224,7 +238,7 @@ def main():
     reader = lazy_handler.LazyReader(lname)
     labels = reader.get_info()["labels"]
     writer.set_general_info({"E_step":Estep})
-    writer.set_general_info({"labels":labels+", Emax, fixed"})
+    writer.set_general_info({"labels":labels+", Emax, fixed, label"})
     bu.log("All done!",level=0)
     return 
     

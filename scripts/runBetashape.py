@@ -35,7 +35,10 @@ def get_ensdf_file(lname=None,ensdf_path=None,dtype = ".ensdf"):
         reader = lazy_handler.LazyReader(lname)
         nuclides_for_betashape = lazy_to_ensdf(reader.get_nuclides_list())
         path_files = np.array(listdir(ensdf_path))
-        return np.intersect1d(nuclides_for_betashape,path_files)
+        
+        common_files = np.intersect1d(nuclides_for_betashape,path_files)
+        not_present =  np.array(list(set(nuclides_for_betashape) - set(common_files)))
+        return common_files, not_present
 
 
 
@@ -58,7 +61,7 @@ def main():
     config_dic = bu.Config2Dict(config).get_parameters()
     
     bu.log("Finding "+dtype+" files to process with betashape in "+ensdf_path+" ...",level=0)
-    fname_to_process = get_ensdf_file(lname=lname,ensdf_path=ensdf_path)
+    fname_to_process, file_not_found = get_ensdf_file(lname=lname,ensdf_path=ensdf_path)  #list of file present both in betashape dir and in the .lazy file.
     imax = len(fname_to_process)
     bu.log(str(imax)+" files to process.", level=1)
     
@@ -94,13 +97,11 @@ def main():
             f_processed.append(fname_to_process[i])
         if cmdBeta.get_result_state() == "file not processed":
             f_not_processed.append(fname_to_process[i])
-        if cmdBeta.get_result_state() == "file not found":
-            f_not_found.append(fname_to_process[i])   
     
     text_log = "# \n" + "# ENSDF files NOT processed: \n"
     text_log += ", ".join(f_not_processed) + "\n"
     text_log += "# \n" + "# ENSDF files NOT found: \n"
-    text_log += ", ".join(f_not_found) + "\n"
+    text_log += ", ".join(list(file_not_found)) + "\n"
     text_log += "# \n" + "# ENSDF files found: \n"
     text_log += ", ".join(f_processed) + "\n"    
     bu.log("Creating .log file...",level=0)

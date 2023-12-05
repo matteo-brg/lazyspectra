@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 import numpy as np
-from base import base_utilities
+import warnings
+warnings.filterwarnings('ignore') #FIXME
+
+from base import base_utilities as bu
 from rw import lazy_handler
 import h5py
 from process import wrappers
 import argparse
 from datetime import date
-
 
 def find_cumulative_fission_yield(parent_list = None):
     '''
@@ -15,59 +17,62 @@ def find_cumulative_fission_yield(parent_list = None):
     dictionary = {}
     metastable_nuclides_names = np.array([])  
     non_metastable_nuclides_names = np.array([])    
-
+    variable_names = ["cumulative_thermal_fy","unc_ct","cumulative_fast_fy","unc_cf"]
+    
     for parent in parent_list:
         nuchart = wrappers.CmdNuChart()
         nuchart.get_fission_yields(kind="cumulative",parent=parent)
-
+        '''
         variable_names = ["cumulative_thermal_fy","unc_ct"]    
         if parent == "238u":
             variable_names = ["cumulative_fast_fy","unc_cf"]
+        '''
+        for kk in range(len(variable_names)//2):
         
-        #========= find the cumulative fission yield >0
-        ii = nuchart.get_index_non_empty(variable_names[0])
-        cfy= nuchart.get_array(variable_names[0])[ii].astype(float)
-        er_cfy = nuchart.get_array(variable_names[1])[ii].astype(float)
+            #========= find the cumulative fission yield >0
+            ii = nuchart.get_index_non_empty(variable_names[kk*2])
+            cfy= nuchart.get_array(variable_names[kk*2])[ii].astype(float)
+            er_cfy = nuchart.get_array(variable_names[kk*2+1])[ii].astype(float)
 
-        #========= write the name of the nuclides as mass number + symbol
-        nuclides_names = (nuchart.get_array("a_daughter")[ii].astype(str)+nuchart.get_array("element_daughter")[ii]).astype(str)
-        nuclides_names = nuclides_names.astype("<U8")
-        nuclides_names_original = nuclides_names
+            #========= write the name of the nuclides as mass number + symbol
+            nuclides_names = (nuchart.get_array("a_daughter")[ii].astype(str)+nuchart.get_array("element_daughter")[ii]).astype(str)
+            nuclides_names = nuclides_names.astype("<U8")
+            nuclides_names_original = nuclides_names
 
-        #========= fix the name of the metastable nuclides. e.g. 166Ho_1m
-        uniq, index, counts =np.unique(nuclides_names,return_index=True,return_counts=True)
-        index_non_unique =np.uint32(np.where(np.in1d(np.arange(len(nuclides_names)),index,invert = True))[0])
-
-        index_metastable = index_non_unique   
-        index_normal =np.uint32(np.where(np.in1d(np.arange(len(nuclides_names)),index_metastable,invert = True))[0])
-    
-        #update the array
-        metastable_nuclides_names = np.append(metastable_nuclides_names,nuclides_names_original[index_metastable])
-        non_metastable_nuclides_names = np.append(non_metastable_nuclides_names,nuclides_names_original[index_normal])
- 
-        i = 1
-        while len(index_non_unique) != 0:
-    
-            for j in index_non_unique:
-                if i == 1:
-                    nuclides_names[j] = nuclides_names[j]+"_"+str(i)+"m"
-                else:
-                    nuclides_names[j] = nuclides_names[j][:-3]+"_"+str(i)+"m"
-            i += 1
-            uniq, index =np.unique(nuclides_names,return_index=True)
+            #========= fix the name of the metastable nuclides. e.g. 166Ho_1m
+            uniq, index, counts =np.unique(nuclides_names,return_index=True,return_counts=True)
             index_non_unique =np.uint32(np.where(np.in1d(np.arange(len(nuclides_names)),index,invert = True))[0])
 
-        #========= update the dictionary with the info found 
-        j = 0
-        for nuclide in nuclides_names:
-            temp = {}
-            temp[variable_names[0]+"_"+parent] = cfy[j]
-            temp[variable_names[1]+"_"+parent] = er_cfy[j]
-            j +=1
-            try:
-                dictionary[nuclide].update(temp)
-            except:
-                dictionary[nuclide] = temp
+            index_metastable = index_non_unique   
+            index_normal =np.uint32(np.where(np.in1d(np.arange(len(nuclides_names)),index_metastable,invert = True))[0])
+    
+            #update the array
+            metastable_nuclides_names = np.append(metastable_nuclides_names,nuclides_names_original[index_metastable])
+            non_metastable_nuclides_names = np.append(non_metastable_nuclides_names,nuclides_names_original[index_normal])
+ 
+            i = 1
+            while len(index_non_unique) != 0:
+    
+                for j in index_non_unique:
+                    if i == 1:
+                        nuclides_names[j] = nuclides_names[j]+"_"+str(i)+"m"
+                    else:
+                        nuclides_names[j] = nuclides_names[j][:-3]+"_"+str(i)+"m"
+                i += 1
+                uniq, index =np.unique(nuclides_names,return_index=True)
+                index_non_unique =np.uint32(np.where(np.in1d(np.arange(len(nuclides_names)),index,invert = True))[0])
+                
+            #========= update the dictionary with the info found 
+            j = 0
+            for nuclide in nuclides_names:
+                temp = {}
+                temp[variable_names[kk*2]+"_"+parent] = cfy[j]
+                temp[variable_names[kk*2+1]+"_"+parent] = er_cfy[j]
+                j +=1
+                try:
+                    dictionary[nuclide].update(temp)
+                except:
+                    dictionary[nuclide] = temp
 
     return dictionary
 
@@ -139,6 +144,7 @@ def find_nuclide__meta_beta(E_thr = None,nuclides_names=None,
         nuchart.get_nuclear_levels(nuclide_name)
         # find the location of proper the energy shift for the corresponding metastable state 
         # |-> [pos_beta][temp["metastable"]])
+            
         pos_beta = np.where((nuchart.get_array("decay_1")=="B-")|(nuchart.get_array("decay_2")=="B-")|(nuchart.get_array("decay_3")=="B-"))[0]
         try:
             array_to_save =nuchart.get_array(names_lcn2)[pos_beta][temp["metastable"]]
@@ -175,10 +181,10 @@ def main():
     args = parser.parse_args()    
     
     #========= Set the initial parameters
-    dic_config_file = base_utilities.Config2Dict(args.config)
+    dic_config_file = bu.Config2Dict(args.config)
     dic_config_file = dic_config_file.get_parameters()
     
-    save_path = base_utilities.fix_path(args.save_path)
+    save_path = bu.fix_path(args.save_path)
     
     E_thr = dic_config_file["E_thr"]
     name_to_save_lcn = ["qbm","unc_qb","z","n","symbol"]
@@ -195,38 +201,41 @@ def main():
         name_to_save_meta.extend(dic_config_file["variable_to_save_meta"])  
            
     #========= Cumulative fission yield
-    print("Collecting the cumulative fission yield of 235u, 238u, 239Pu and 241 Pu...")
+    bu.log("Collecting the cumulative fission yield of 235u, 238u, 239Pu and 241 Pu...", level=0) 
     dictionary = find_cumulative_fission_yield(parent_list = ["235u","238u","239Pu","241Pu"])
-    print("Done!")
+    bu.log("Done!", level=1)
+
     dic_keys = np.array(list(dictionary.keys()))
-    nuclides_names_non_meta = dic_keys[np.uint32(np.where(np.in1d(np.arange(len(dic_keys)),base_utilities.locate_word(dic_keys,"_"),invert = True))[0])]
-    nuclides_names_meta = dic_keys[base_utilities.locate_word(dic_keys,"_")]
-    print(len(dic_keys), " nuclides found!")
-    print("|- ", len(nuclides_names_non_meta) ," nuclides found in a non metastable state")
-    print("|- ", len(nuclides_names_meta) ," nuclides found in a metastable state")
+    nuclides_names_non_meta = dic_keys[np.uint32(np.where(np.in1d(np.arange(len(dic_keys)),bu.locate_word(dic_keys,"_"),invert = True))[0])]
+    nuclides_names_meta = dic_keys[bu.locate_word(dic_keys,"_")]
+    bu.log(str(len(dic_keys)) + " nuclides found!",level=1)
+    bu.log(str(len(nuclides_names_non_meta))+ " nuclides found in a non metastable state",level=2)
+    bu.log(str(len(nuclides_names_meta)) + " nuclides found in a metastable state",level=2)
+
     
     #========= B- non metastable
-    print("Collecting B- nuclides (non metastable) with Q >= ", E_thr , " [keV]...")
+    bu.log("Collecting B- nuclides (non metastable) with Q >= "+ str(E_thr) + " [keV]...",level=0)
     dictionary2 = find_nuclide_beta(E_thr = E_thr,nuclides_names=nuclides_names_non_meta,names_lcn=name_to_save_lcn,names=name_to_save)
     nuclides_deleted2 = nuclides_names_non_meta[np.uint32(np.where(np.in1d(nuclides_names_non_meta,np.array(list(dictionary2.keys())),invert = True))[0])]
-    print("Done!")
-    print(len(nuclides_deleted2) ," nuclides (non metastable) previously found do not satisfy the required conditions.")
+    bu.log("Done!",level=1)
+    bu.log(str(len(nuclides_deleted2) )+ " nuclides (non metastable) previously found do not satisfy the required conditions.",level=2)
     
     
     #========= B- metastable
-    print("Collecting B- nuclides (metastable) with Q >= ", E_thr , " [keV]...")
+    bu.log("Collecting B- nuclides (metastable) with Q >= "+ str(E_thr) + " [keV]...",level=0)
     dictionary3 = find_nuclide__meta_beta(E_thr = E_thr,nuclides_names=nuclides_names_meta,
                         names_lcn1=name_to_save_lcn,names1=name_to_save,
                         names_lcn2=name_to_save_meta_lcn,names2=name_to_save_meta)
     nuclides_deleted3 = nuclides_names_meta[np.uint32(np.where(np.in1d(nuclides_names_meta,np.array(list(dictionary3.keys())),invert = True))[0])]
-    print(len(nuclides_deleted3) ," nuclides (metastable) previously found do not satisfy the required conditions.")
-    
+    bu.log(str(len(nuclides_deleted3) )+ " nuclides (metastable) previously found do not satisfy the required conditions.",level=2)
+        
     #========= Create one dictionary
-    print("Merging the information...")
-    dictionary_final = base_utilities.merge_dictionaries(dictionary,dictionary2)
-    dictionary_final = base_utilities.merge_dictionaries(dictionary_final,dictionary3)
+    bu.log("Merging data...",level=0)
+    dictionary_final = bu.merge_dictionaries(dictionary,dictionary2)
+    dictionary_final = bu.merge_dictionaries(dictionary_final,dictionary3)
     
-    print("Cleaning the useless nuclides...")
+    bu.log("Cleaning the useless nuclides...",level=1)
+
     temp = []
     for key in dic_keys:
         if name_to_save[0] in dictionary_final[key]:
@@ -234,26 +243,25 @@ def main():
         else:
             temp.append(key)
             dictionary_final.pop(key)
-    print("In the end, only ", len( np.array(list(dictionary_final.keys()))), "/", len(dic_keys), " nuclides remain.")
-    
+    bu.log("In the end, only "+ str(len( np.array(list(dictionary_final.keys()))))+ "/"+ str(len(dic_keys))+ " nuclides remain.",level=2)    
     #========= Create .log file
     
     dic_keys = np.array(list(dictionary_final.keys()))
     text_log = "# These are nuclides name to use to search the appropriate ENSDF file: \n"
-    text_log += ", ".join(dic_keys[np.uint32(np.where(np.in1d(np.arange(len(dic_keys)),base_utilities.locate_word(dic_keys,"_"),invert = True))[0])]) + '\n'
+    text_log += ", ".join(dic_keys[np.uint32(np.where(np.in1d(np.arange(len(dic_keys)),bu.locate_word(dic_keys,"_"),invert = True))[0])]) + '\n'
     text_log += "# \n" + "# These are nuclides name in the .lazy file: \n"
     text_log += ", ".join(dic_keys) + "\n"
     text_log += "# \n" + "# These are nuclides non metastable which have cumulative fission yield > 0 but do not satisfy the required conditions.: \n"
     text_log += ", ".join(nuclides_deleted2) + "\n"
     text_log += "# \n" + "# These are nuclides metastable which have cumulative fission yield > 0 but do not satisfy the required conditions.: \n"
     text_log += ", ".join(nuclides_deleted3) + "\n"
-    print("Creating .log file...")
+    bu.log("Creating .log file...", level=0)
     with open(save_path+args.fname+".log","w") as f:
         f.write(text_log)
-    print("Done!")
+    bu.log("Done!",level=1)
 
     #========= Save the dictionary in a .lazy (hdf5) file
-    print("Saving the .lazy file in "+ save_path + "...")
+    bu.log("Saving the .lazy file in "+ save_path + "...",level=0)
     writer = lazy_handler.LazyWriter(output_path=save_path,name=args.fname)
     
     name_to_save.extend(name_to_save_meta)    
@@ -268,7 +276,7 @@ def main():
     
     for key, value in dictionary_final.items():
         writer.write_nuclide_data(key,"info",value)
-    print("All Done!")
+    bu.log("All Done!",level=0)
 
 if __name__ == "__main__":
     main()

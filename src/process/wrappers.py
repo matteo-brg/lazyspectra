@@ -2,12 +2,16 @@
  Desc  : Collection of utilities used in other codes 
 '''
 
+import warnings
+warnings.filterwarnings('ignore') #FIXME
+
 import pandas as pd
 import urllib.request
 import numpy as np
 from base import base_utilities
 from os import listdir
 import subprocess
+import os
 
 
 
@@ -57,14 +61,14 @@ class CmdNuChart(object):
         return len(self.get_df())
     
     def get_index_non_empty(self,column_name = None):
-        return np.where(np.array(self.get_df()[column_name]) != " ")[0]
+        return np.where(np.isnan(np.array(self.get_df()[column_name])) == False)[0]
     
     def get_array(self,column_name=None):
         data = np.array(self.get_df()[column_name])
-        
+
         if len(data.shape) == 2:
             for col in range(data.shape[1]):
-                data[:,col][data[:,col]==" "] = np.nan
+                #data[:,col][data[:,col]==" "] = np.nan
                 try:
                     data[:,col] = data[:,col].astype(float)
                 except:
@@ -76,7 +80,7 @@ class CmdNuChart(object):
                     data[col] = float(data[col])
                 except:
                     data[col] = str(data[col])    
-                    
+                            
         return data
     
     def get_decays(self,nuclide=None,dtype="bm"): #135xe
@@ -123,10 +127,12 @@ class CmdBetaShape(object):
             subprocess.call(["mv",  bpath+filen, self._save_path])
         self._message = message[0].decode('ascii')
         
+        '''
         new_files = np.delete(new_files,new_files==file_dir)  
         if file_dir is not None:    #copy ALL the betashape output inside the nuclide folder (file_dir).
             for filen in new_files:
-                subprocess.call(["mv",  CmdBEtashape._save_path+"/"+filen, CmdBEtashape._save_path+"/"+file_dir])
+                subprocess.call(["mv",  self._save_path+"/"+filen, self._save_path+"/"+file_dir])
+        '''
         return  
         
     def get_result_state(self,thr=800):
